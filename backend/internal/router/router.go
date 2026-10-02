@@ -13,6 +13,8 @@ import (
 )
 
 func Setup(app *fiber.App, db *sql.DB, cfg *config.Config) {
+	// rate limit global - lapisan pertama untuk semua request
+	app.Use(middleware.GlobalRateLimit())
 	// repository
 	siswaRepo := mysqlrepo.NewSiswaRepo(db)
 	importLogRepo := mysqlrepo.NewImportLogRepo(db)
@@ -35,8 +37,6 @@ func Setup(app *fiber.App, db *sql.DB, cfg *config.Config) {
 
 	// === consumer routes (dipakai app-presensi, app-perpustakaan) ===
 	consumer := api.Group("/consumer", middleware.APIKeyAuth(db))
-	consumer.Get("/siswa/:id/ringkas", siswaHandler.GetRingkas)
-	consumer.Get("/siswa/search", siswaHandler.Search)
 	consumer.Get("/siswa/:id/ringkas", middleware.RequireScope("siswa:read:basic"), siswaHandler.GetRingkas)
 	consumer.Get("/siswa/search", middleware.RequireScope("siswa:read:basic"), siswaHandler.Search)
 
