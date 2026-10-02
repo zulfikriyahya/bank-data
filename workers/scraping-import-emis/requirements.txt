@@ -1,0 +1,7 @@
+playwright
+pandas
+openpyxl
+python-dotenv
+beautifulsoup4
+tqdm
+requests

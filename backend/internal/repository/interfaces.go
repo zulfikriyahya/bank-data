@@ -53,3 +53,10 @@ type APIClientRepository interface {
 	Update(id int64, input domain.UpdateAPIClientInput) error
 	Delete(id int64) error
 }
+
+type ScraperConfigRepository interface {
+	Upsert(scraperName string, configEncrypted string, updatedBy string) error
+	FindByName(scraperName string) (*domain.ScraperConfig, string, error) // return domain + raw encrypted string
+	List() ([]domain.ScraperConfig, error)
+}
+

@@ -1,0 +1,7 @@
+.env
+auth.json
+*.json
+*.xlsx
+venv/
+__pycache__/
+debug_page*.png

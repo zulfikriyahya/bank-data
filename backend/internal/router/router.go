@@ -53,6 +53,10 @@ func Setup(app *fiber.App, db *sql.DB, cfg *config.Config) {
 	apiClientService := service.NewAPIClientService(apiClientRepo)
 	apiClientHandler := handler.NewAPIClientHandler(apiClientService)
 
+	scraperConfigRepo := mysqlrepo.NewScraperConfigRepo(db)
+	scraperConfigService := service.NewScraperConfigService(scraperConfigRepo)
+	scraperConfigHandler := handler.NewScraperConfigHandler(scraperConfigService)
+
 	// === admin routes (dipakai dashboard MDM, butuh session login) ===
 	admin := api.Group("/admin", middleware.AdminAuth())
 	admin.Get("/siswa", siswaHandler.List)
@@ -68,7 +72,15 @@ func Setup(app *fiber.App, db *sql.DB, cfg *config.Config) {
 	admin.Delete("/api-clients/:id", apiClientHandler.Delete)
 	admin.Post("/api-clients/:id/regenerate-key", apiClientHandler.RegenerateKey)
 
+	// admin - kelola config
+	admin.Post("/scraper-config/:name", scraperConfigHandler.SetConfig)
+	admin.Get("/scraper-config/:name", scraperConfigHandler.GetConfig)
+	admin.Get("/scraper-config", scraperConfigHandler.List)
+
+	// internal - scraper ambil config sendiri
+	internal.Get("/scraper-config/:name", scraperConfigHandler.GetConfigForScraper)
 	adminRepo := mysqlrepo.NewAdminRepo(db)
+
 	authService := service.NewAuthService(adminRepo)
 	authHandler := handler.NewAuthHandler(authService)
 
