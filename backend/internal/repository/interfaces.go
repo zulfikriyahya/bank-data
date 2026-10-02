@@ -44,3 +44,12 @@ type ActivityLogRepository interface {
 	ListBySiswa(siswaID int64, limit int) ([]domain.ActivityLog, error)
 	List(limit, offset int, activityType string) ([]domain.ActivityLog, int, error)
 }
+
+type APIClientRepository interface {
+	Create(client *domain.APIClient, apiKeyHash string) (int64, error)
+	FindByID(id int64) (*domain.APIClient, error)
+	FindByName(name string) (*domain.APIClient, error)
+	List() ([]domain.APIClient, error)
+	Update(id int64, input domain.UpdateAPIClientInput) error
+	Delete(id int64) error
+}

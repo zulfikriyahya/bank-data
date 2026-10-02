@@ -49,6 +49,10 @@ func Setup(app *fiber.App, db *sql.DB, cfg *config.Config) {
 		activityLogHandler.Record,
 	)
 
+	apiClientRepo := mysqlrepo.NewAPIClientRepo(db)
+	apiClientService := service.NewAPIClientService(apiClientRepo)
+	apiClientHandler := handler.NewAPIClientHandler(apiClientService)
+
 	// === admin routes (dipakai dashboard MDM, butuh session login) ===
 	admin := api.Group("/admin", middleware.AdminAuth())
 	admin.Get("/siswa", siswaHandler.List)
@@ -57,6 +61,12 @@ func Setup(app *fiber.App, db *sql.DB, cfg *config.Config) {
 	admin.Delete("/siswa/:id", siswaHandler.Delete)
 	admin.Get("/siswa/:id/activity-log", activityLogHandler.GetBySiswa)
 	admin.Get("/activity-log", activityLogHandler.List)
+	admin.Post("/api-clients", apiClientHandler.Create)
+	admin.Get("/api-clients", apiClientHandler.List)
+	admin.Get("/api-clients/:id", apiClientHandler.GetDetail)
+	admin.Put("/api-clients/:id", apiClientHandler.Update)
+	admin.Delete("/api-clients/:id", apiClientHandler.Delete)
+	admin.Post("/api-clients/:id/regenerate-key", apiClientHandler.RegenerateKey)
 
 	adminRepo := mysqlrepo.NewAdminRepo(db)
 	authService := service.NewAuthService(adminRepo)
