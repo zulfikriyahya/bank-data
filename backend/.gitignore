@@ -4,5 +4,5 @@ logs/
 *.log
 vendor/
 bin/
-logs/
+logs/*
 *.log
