@@ -88,3 +88,33 @@ func RequireScope(requiredScope string) fiber.Handler {
 		})
 	}
 }
+
+// RequireAnyScope - lolos kalau client punya SALAH SATU dari scope yang disebutkan
+// dipakai untuk endpoint generik yang boleh diakses beberapa jenis client berbeda
+func RequireAnyScope(requiredScopes ...string) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		scopesRaw := c.Locals("client_scopes")
+		if scopesRaw == nil {
+			return c.Status(500).JSON(fiber.Map{"error": "scope belum divalidasi, cek urutan middleware"})
+		}
+
+		clientScopes, ok := scopesRaw.([]string)
+		if !ok {
+			return c.Status(500).JSON(fiber.Map{"error": "format scope tidak valid"})
+		}
+
+		for _, required := range requiredScopes {
+			for _, owned := range clientScopes {
+				if owned == required {
+					return c.Next()
+				}
+			}
+		}
+
+		clientName, _ := c.Locals("client_name").(string)
+		return c.Status(403).JSON(fiber.Map{
+			"error":           "client '" + clientName + "' tidak punya izin untuk endpoint ini",
+			"required_scope":  requiredScopes,
+		})
+	}
+}

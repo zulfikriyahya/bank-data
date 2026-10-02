@@ -35,10 +35,19 @@ func Setup(app *fiber.App, db *sql.DB, cfg *config.Config) {
 	internal.Post("/import/emis", importHandler.ImportEmis)
 	internal.Get("/import/:jobId/status", importHandler.GetJobStatus)
 
+	// tambahkan di bagian repository/service/handler setup
+	activityLogRepo := mysqlrepo.NewActivityLogRepo(db)
+	activityLogService := service.NewActivityLogService(activityLogRepo, siswaRepo)
+	activityLogHandler := handler.NewActivityLogHandler(activityLogService)
+
 	// === consumer routes (dipakai app-presensi, app-perpustakaan) ===
 	consumer := api.Group("/consumer", middleware.APIKeyAuth(db))
 	consumer.Get("/siswa/:id/ringkas", middleware.RequireScope("siswa:read:basic"), siswaHandler.GetRingkas)
 	consumer.Get("/siswa/search", middleware.RequireScope("siswa:read:basic"), siswaHandler.Search)
+	consumer.Post("/activity-log",
+		middleware.RequireAnyScope("presensi:write", "perpustakaan:write"),
+		activityLogHandler.Record,
+	)
 
 	// === admin routes (dipakai dashboard MDM, butuh session login) ===
 	admin := api.Group("/admin", middleware.AdminAuth())
@@ -46,6 +55,8 @@ func Setup(app *fiber.App, db *sql.DB, cfg *config.Config) {
 	admin.Get("/siswa/:id", siswaHandler.GetDetail)
 	admin.Put("/siswa/:id", siswaHandler.Update)
 	admin.Delete("/siswa/:id", siswaHandler.Delete)
+	admin.Get("/siswa/:id/activity-log", activityLogHandler.GetBySiswa)
+	admin.Get("/activity-log", activityLogHandler.List)
 
 	adminRepo := mysqlrepo.NewAdminRepo(db)
 	authService := service.NewAuthService(adminRepo)

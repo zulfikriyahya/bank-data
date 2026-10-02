@@ -38,3 +38,9 @@ type AdminRepository interface {
 	FindByUsername(username string) (*domain.AdminUser, error)
 	UpdateLastLogin(id int64) error
 }
+
+type ActivityLogRepository interface {
+	Create(log *domain.ActivityLog) (int64, error)
+	ListBySiswa(siswaID int64, limit int) ([]domain.ActivityLog, error)
+	List(limit, offset int, activityType string) ([]domain.ActivityLog, int, error)
+}
