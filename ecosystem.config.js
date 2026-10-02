@@ -1,32 +1,21 @@
 module.exports = {
   apps: [
     {
-      name: "bankdata-backend",
+      name: "core-app",
       cwd: "./backend",
-      script: "./bin/server", // hasil build go, lihat catatan di bawah
+      script: "./bin/server",
       interpreter: "none",
-      env: {
-        APP_ENV: "production",
-        PORT: 8080,
-      },
+      instances: 1,
+      autorestart: true,
       watch: false,
-      out_file: "./backend/logs/out.log",
-      error_file: "./backend/logs/error.log",
-      merge_logs: true,
-    },
-    {
-      name: "bankdata-frontend",
-      cwd: "./frontend",
-      script: "npm",
-      args: "run start", // pastikan sudah `npm run build` dulu
+      max_memory_restart: "300M",
       env: {
-        NODE_ENV: "production",
-        PORT: 3000,
+        APP_ENV: "production"
       },
-      watch: false,
-      out_file: "./frontend/logs/out.log",
-      error_file: "./frontend/logs/error.log",
+      out_file: "./logs/out.log",
+      error_file: "./logs/error.log",
       merge_logs: true,
-    },
-  ],
+      time: true
+    }
+  ]
 };

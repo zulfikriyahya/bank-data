@@ -1,0 +1,8 @@
+.env
+bin/
+logs/
+*.log
+vendor/
+bin/
+logs/
+*.log
