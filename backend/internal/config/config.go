@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 
 	"github.com/joho/godotenv"
 )
@@ -57,4 +58,14 @@ func getEnv(key, fallback string) string {
 		return val
 	}
 	return fallback
+}
+
+func (c *Config) ScraperDir() string {
+	dir := getEnv("SCRAPER_DIR", "")
+	if dir != "" {
+		return dir
+	}
+	// fallback: resolve otomatis relatif terhadap working directory saat start
+	wd, _ := os.Getwd()
+	return filepath.Join(wd, "..", "workers", "scraping-import-emis")
 }

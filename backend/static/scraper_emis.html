@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Trigger Scraping EMIS</title>
+<style>
+  body { font-family: system-ui, sans-serif; max-width: 600px; margin: 40px auto; padding: 0 20px; }
+  h1 { font-size: 20px; }
+  .step { background: #f5f5f5; padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; font-size: 14px; }
+  .step code { background: #e0e0e0; padding: 2px 6px; border-radius: 4px; }
+  label { display: block; margin-top: 16px; font-weight: 600; font-size: 14px; }
+  input[type=file], input[type=password], input[type=text] { width: 100%; padding: 8px; margin-top: 4px; box-sizing: border-box; }
+  button { margin-top: 20px; padding: 10px 20px; background: #2563eb; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; }
+  button:disabled { background: #999; cursor: not-allowed; }
+  #result { margin-top: 20px; padding: 12px; border-radius: 8px; font-size: 14px; white-space: pre-wrap; display: none; }
+  .success { background: #dcfce7; color: #166534; }
+  .error { background: #fee2e2; color: #991b1b; }
+  #log { margin-top: 16px; background: #111; color: #0f0; padding: 12px; border-radius: 8px; font-family: monospace; font-size: 12px; max-height: 300px; overflow-y: auto; white-space: pre-wrap; display: none; }
+</style>
+</head>
+<body>
+
+<h1>Trigger Scraping Data EMIS</h1>
+
+<div class="step">
+  <strong>Langkah 1:</strong> Login ke EMIS di browser, selesaikan captcha sampai dashboard muncul.
+</div>
+<div class="step">
+  <strong>Langkah 2:</strong> Install extension <strong>Cookie-Editor</strong>, buka di halaman EMIS, klik Export → pilih JSON, simpan sebagai file.
+</div>
+<div class="step">
+  <strong>Langkah 3:</strong> Buka DevTools (F12) → Console, jalankan kode ini lalu simpan hasilnya (otomatis ke clipboard) sebagai file:
+  <br><code>copy(JSON.stringify(Object.keys(localStorage).map(k =&gt; ({name: k, value: localStorage.getItem(k)})), null, 2))</code>
+</div>
+<div class="step">
+  <strong>Langkah 4:</strong> Upload kedua file di bawah ini.
+</div>
+
+<form id="uploadForm">
+  <label>URL Core-App</label>
+  <input type="text" id="coreAppUrl" value="http://localhost:8080" required>
+
+  <label>Token Admin (login dulu kalau belum punya)</label>
+  <input type="password" id="adminToken" placeholder="Bearer token admin" required>
+
+  <label>File Cookies (hasil export Cookie-Editor)</label>
+  <input type="file" id="cookiesFile" accept=".json" required>
+
+  <label>File localStorage (hasil copy dari Console)</label>
+  <input type="file" id="localStorageFile" accept=".json" required>
+
+  <label>Mode</label>
+  <select id="mode" style="width:100%; padding:8px; margin-top:4px;">
+    <option value="resume">resume (lanjutkan progress)</option>
+    <option value="retry">retry (ulangi halaman belum lengkap)</option>
+  </select>
+
+  <button type="submit" id="submitBtn">Mulai Scraping</button>
+</form>
+
+<div id="result"></div>
+<div id="log"></div>
+
+<script>
+const form = document.getElementById('uploadForm');
+const result = document.getElementById('result');
+const logBox = document.getElementById('log');
+const submitBtn = document.getElementById('submitBtn');
+let pollInterval = null;
+
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  result.style.display = 'none';
+  logBox.style.display = 'none';
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Mengupload...';
+
+  const coreAppUrl = document.getElementById('coreAppUrl').value.replace(/\/$/, '');
+  const token = document.getElementById('adminToken').value;
+  const mode = document.getElementById('mode').value;
+  const cookiesFile = document.getElementById('cookiesFile').files[0];
+  const localStorageFile = document.getElementById('localStorageFile').files[0];
+
+  const formData = new FormData();
+  formData.append('cookies', cookiesFile);
+  formData.append('localstorage', localStorageFile);
+
+  try {
+    const res = await fetch(`${coreAppUrl}/api/v1/admin/scraper/emis/trigger?mode=${mode}`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}` },
+      body: formData
+    });
+    const data = await res.json();
+
+    if (!res.ok) {
+      showResult('error', `Gagal: ${data.error || 'unknown error'}`);
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Mulai Scraping';
+      return;
+    }
+
+    showResult('success', `Scraping dimulai (mode: ${data.mode}). Memantau progres...`);
+    logBox.style.display = 'block';
+    submitBtn.textContent = 'Sedang berjalan...';
+
+    pollInterval = setInterval(() => pollStatus(coreAppUrl, token), 3000);
+
+  } catch (err) {
+    showResult('error', `Gagal konek ke core-app: ${err.message}`);
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Mulai Scraping';
+  }
+});
+
+async function pollStatus(coreAppUrl, token) {
+  try {
+    const res = await fetch(`${coreAppUrl}/api/v1/admin/scraper/emis/status`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const data = await res.json();
+
+    logBox.textContent = (data.log_tail || []).join('\n');
+    logBox.scrollTop = logBox.scrollHeight;
+
+    if (!data.running) {
+      clearInterval(pollInterval);
+      showResult('success', 'Scraping selesai. Lihat log lengkap di bawah.');
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Mulai Scraping';
+    }
+  } catch (err) {
+    // diam saja, coba lagi di poll berikutnya
+  }
+}
+
+function showResult(type, message) {
+  result.className = type;
+  result.textContent = message;
+  result.style.display = 'block';
+}
+</script>
+
+</body>
+</html>

@@ -56,9 +56,12 @@ func Setup(app *fiber.App, db *sql.DB, cfg *config.Config) {
 	scraperConfigRepo := mysqlrepo.NewScraperConfigRepo(db)
 	scraperConfigService := service.NewScraperConfigService(scraperConfigRepo)
 	scraperConfigHandler := handler.NewScraperConfigHandler(scraperConfigService)
+	scraperTriggerHandler := handler.NewScraperTriggerHandler(cfg.ScraperDir())
 
 	// === admin routes (dipakai dashboard MDM, butuh session login) ===
 	admin := api.Group("/admin", middleware.AdminAuth())
+	admin.Post("/scraper/emis/trigger-json", scraperTriggerHandler.TriggerJSON)
+	admin.Get("/scraper/emis/status", scraperTriggerHandler.Status)
 	admin.Get("/siswa", siswaHandler.List)
 	admin.Get("/siswa/:id", siswaHandler.GetDetail)
 	admin.Put("/siswa/:id", siswaHandler.Update)

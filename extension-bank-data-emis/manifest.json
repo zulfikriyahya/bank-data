@@ -1,0 +1,31 @@
+{
+  "manifest_version": 3,
+  "name": "Bank Data - EMIS Sync",
+  "version": "1.0.0",
+  "description": "Ambil sesi EMIS otomatis dan trigger scraping ke Bank Data, satu klik.",
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Bank Data EMIS Sync"
+  },
+  "permissions": [
+    "cookies",
+    "scripting",
+    "activeTab",
+    "storage"
+  ],
+  "host_permissions": [
+    "https://emis.kemenag.go.id/*",
+    "https://*.kemenag.go.id/*",
+    "http://localhost:8080/*",
+    "http://127.0.0.1:8080/*"
+  ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'; connect-src 'self' http://localhost:8080 http://127.0.0.1:8080 https://emis.kemenag.go.id https://*.kemenag.go.id"
+  },
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "bankdata-emis-sync@internal",
+      "strict_min_version": "109.0"
+    }
+  }
+}

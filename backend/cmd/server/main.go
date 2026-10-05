@@ -5,17 +5,18 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
 	"bank-data/backend/internal/config"
 	"bank-data/backend/internal/router"
 
+	_ "github.com/go-sql-driver/mysql"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
-	_ "github.com/go-sql-driver/mysql"
 )
 
 func main() {
@@ -37,14 +38,23 @@ func main() {
 	app.Use(recover.New())
 	app.Use(logger.New())
 	app.Use(cors.New(cors.Config{
-		AllowOrigins:     getAllowedOrigins(),
+		AllowOriginsFunc: func(origin string) bool {
+			allowed := strings.Split(getAllowedOrigins(), ",")
+			for _, a := range allowed {
+				if strings.TrimSpace(a) == origin {
+					return true
+				}
+			}
+			// izinkan semua browser extension (moz-extension / chrome-extension)
+			return strings.HasPrefix(origin, "moz-extension://") || strings.HasPrefix(origin, "chrome-extension://")
+		},
 		AllowMethods:     "GET,POST,PUT,DELETE,OPTIONS",
 		AllowHeaders:     "Origin, Content-Type, Accept, Authorization, X-API-Key",
 		AllowCredentials: true,
 	}))
 
 	router.Setup(app, db, cfg)
-
+	app.Static("/admin-tools", "./static")
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"

@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8">
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      width: 360px;
+      padding: 16px;
+    }
+
+    h2 {
+      font-size: 15px;
+      margin: 0 0 12px;
+    }
+
+    label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      margin-top: 10px;
+    }
+
+    input,
+    select {
+      width: 100%;
+      padding: 6px;
+      margin-top: 2px;
+      box-sizing: border-box;
+      font-size: 13px;
+    }
+
+    button {
+      width: 100%;
+      margin-top: 14px;
+      padding: 10px;
+      background: #2563eb;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+    }
+
+    button:disabled {
+      background: #999;
+      cursor: not-allowed;
+    }
+
+    #status {
+      margin-top: 10px;
+      padding: 8px;
+      border-radius: 6px;
+      font-size: 12px;
+      display: none;
+      white-space: pre-wrap;
+    }
+
+    .ok {
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    .err {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    #log {
+      margin-top: 10px;
+      background: #111;
+      color: #0f0;
+      padding: 8px;
+      border-radius: 6px;
+      font-family: monospace;
+      font-size: 11px;
+      max-height: 200px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      display: none;
+    }
+
+    details {
+      margin-top: 12px;
+      font-size: 12px;
+    }
+
+    summary {
+      cursor: pointer;
+      font-weight: 600;
+    }
+  </style>
+</head>
+
+<body>
+  <h2>Bank Data — EMIS Sync</h2>
+
+  <label>URL Core-App</label>
+  <input type="text" id="coreAppUrl" placeholder="http://localhost:8080">
+
+  <label>Mode</label>
+  <select id="mode">
+    <option value="resume">resume (lanjutkan progress)</option>
+    <option value="retry">retry (ulangi yang belum lengkap)</option>
+  </select>
+
+  <button id="runBtn">Ambil Sesi &amp; Mulai Scraping</button>
+
+  <div id="status"></div>
+  <pre id="log"></pre>
+
+  <details id="credDetails">
+    <summary>Kredensial Admin (isi sekali)</summary>
+    <label>Username</label>
+    <input type="text" id="adminUsername" placeholder="admin">
+    <label>Password</label>
+    <input type="password" id="adminPassword" placeholder="password admin">
+    <button type="button" id="saveCredBtn" style="background:#16a34a;">Simpan Kredensial</button>
+  </details>
+
+  <script src="popup.js"></script>
+</body>
+
+</html>

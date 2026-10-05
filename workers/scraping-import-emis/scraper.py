@@ -17,9 +17,6 @@ from datetime import datetime
 
 load_dotenv()
 
-
-# ---------- filter noise cleanup asyncio/Playwright di stderr ----------
-
 class _FilteredStderr(io.TextIOBase):
     """Menyaring noise asyncio/Playwright saat cleanup interpreter
     (Task destroyed / TargetClosedError / Future exception never retrieved).
@@ -488,44 +485,6 @@ def build_combined_rows(valid_records):
 
         combined_rows.append(row)
     return combined_rows
-
-# def export_to_excel(records, filename=OUTPUT_FILE):
-#     check_duplicate_nisn(records)
-#     valid_records = [r for r in records if not r.get("_failed") and is_record_valid(r)]
-#     skipped = len(records) - len(valid_records)
-#     if skipped:
-#         print(f"{skipped} record gagal/kosong tidak diikutkan ke Excel.")
-
-#     siswa_rows, ayah_rows, ibu_rows, wali_rows = [], [], [], []
-#     aktivitas_rows, beasiswa_rows, prestasi_rows = [], [], []
-
-#     for r in valid_records:
-#         nisn = r["siswa"].get("NISN", "")
-#         nama = r["siswa"].get("NAMA", "")
-#         siswa_rows.append({"nama": nama, **r["siswa"]})
-#         if r["ayah"]:
-#             ayah_rows.append({"nisn": nisn, "nama_siswa": nama, **r["ayah"]})
-#         if r["ibu"]:
-#             ibu_rows.append({"nisn": nisn, "nama_siswa": nama, **r["ibu"]})
-#         if r["wali"]:
-#             wali_rows.append({"nisn": nisn, "nama_siswa": nama, **r["wali"]})
-#         for row in r["aktivitas_belajar"]:
-#             aktivitas_rows.append({"nisn": nisn, "nama_siswa": nama, **row})
-#         for row in r["beasiswa"]:
-#             beasiswa_rows.append({"nisn": nisn, "nama_siswa": nama, **row})
-#         for row in r["prestasi"]:
-#             prestasi_rows.append({"nisn": nisn, "nama_siswa": nama, **row})
-
-#     with pd.ExcelWriter(filename, engine="openpyxl") as writer:
-#         pd.DataFrame(siswa_rows).to_excel(writer, sheet_name="Siswa", index=False)
-#         pd.DataFrame(ayah_rows).to_excel(writer, sheet_name="Ayah", index=False)
-#         pd.DataFrame(ibu_rows).to_excel(writer, sheet_name="Ibu", index=False)
-#         pd.DataFrame(wali_rows).to_excel(writer, sheet_name="Wali", index=False)
-#         pd.DataFrame(aktivitas_rows).to_excel(writer, sheet_name="Aktivitas Belajar", index=False)
-#         pd.DataFrame(beasiswa_rows).to_excel(writer, sheet_name="Beasiswa", index=False)
-#         pd.DataFrame(prestasi_rows).to_excel(writer, sheet_name="Prestasi", index=False)
-
-#     print(f"Selesai. Data tersimpan di {filename}")
 
 def export_to_excel(records, filename=OUTPUT_FILE):
     check_duplicate_nisn(records)
